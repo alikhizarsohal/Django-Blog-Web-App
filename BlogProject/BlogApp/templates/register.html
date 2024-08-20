@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <style>
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-group .errorlist {
+            color: red;
+            list-style: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h2>Register</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Display non-field errors -->
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {% if form.username.errors %}
+                <ul class="errorlist">
+                    {% for error in form.username.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}
+                <ul class="errorlist">
+                    {% for error in form.email.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.first_name.label_tag }}
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <ul class="errorlist">
+                    {% for error in form.first_name.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.last_name.label_tag }}
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <ul class="errorlist">
+                    {% for error in form.last_name.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <ul class="errorlist">
+                    {% for error in form.password1.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <ul class="errorlist">
+                    {% for error in form.password2.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            {{ form.profile_picture.label_tag }}
+            {{ form.profile_picture }}
+            {% if form.profile_picture.errors %}
+                <ul class="errorlist">
+                    {% for error in form.profile_picture.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+    <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+</body>
+</html>

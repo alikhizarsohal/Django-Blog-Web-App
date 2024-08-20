@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title|safe }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .post {
+            margin-bottom: 30px;
+        }
+        .post h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .post p {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.6;
+        }
+        .post img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .actions {
+            margin-top: 15px;
+        }
+        .actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .actions .like {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .actions .like:hover {
+            background-color: #0056b3;
+        }
+        .actions .like.active {
+            background-color: #28a745;
+        }
+        .comments {
+            margin-top: 30px;
+        }
+        .comments h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .comment {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .comment .author {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        .comment .content {
+            font-size: 1rem;
+            color: #555;
+            margin-top: 5px;
+        }
+        .comment .actions {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .comment .actions button, .comment .actions a {
+            margin-right: 10px;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .comment .actions .like {
+            background-color: transparent;
+            color: #17a2b8;
+        }
+        .comment .actions .like:hover {
+            color: #117a8b;
+        }
+        .comment .actions .reply {
+            background-color: transparent;
+            color: #28a745;
+        }
+        .comment .actions .reply:hover {
+            color: #218838;
+        }
+        .comment .actions .like-icon, .comment .actions .reply-icon {
+            margin-right: 5px;
+            font-size: 1.2rem;
+        }
+        .replies {
+            margin-left: 30px;
+            display: none; /* Replies are hidden by default */
+        }
+        .reply-form {
+            margin-top: 10px;
+        }
+        .reply-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .reply-button {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #007bff;
+            background: none;
+            border: none;
+        }
+        .reply-button:hover {
+            text-decoration: underline;
+        }
+        .comment-form, .report-form, .suggestion-form {
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        .comment-form h2, .report-form h2, .suggestion-form h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .comment-form button, .report-form button, .suggestion-form button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .comment-form button {
+            background-color: #007bff;
+        }
+        .comment-form button:hover {
+            background-color: #0056b3;
+        }
+        .report-form button {
+            background-color: #dc3545;
+        }
+        .report-form button:hover {
+            background-color: #c82333;
+        }
+        .suggestion-form button {
+            background-color: #17a2b8;
+        }
+        .suggestion-form button:hover {
+            background-color: #138496;
+        }
+        .report-button {
+        background-color: transparent;
+        color: #dc3545;
+        border: none;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: color 0.3s;
+        display: flex;
+        align-items: center;
+    }
+    .report-button:hover {
+        color: #c82333;
+    }
+    .report-icon {
+        margin-right: 5px;
+        font-size: 1.2rem;
+    }
+    .report-form {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .report-form h3 {
+        margin-top: 0;
+    }
+    .report-form textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+    .report-form button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        background-color: #dc3545;
+        color: #fff;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .report-form button:hover {
+        background-color: #c82333;
+    }
+    </style>
+    <script>
+        function toggleReplies(commentId) {
+            var replies = document.getElementById('replies-' + commentId);
+            var button = document.getElementById('toggle-replies-' + commentId);
+            if (replies.style.display === 'none' || replies.style.display === '') {
+                replies.style.display = 'block';
+                button.textContent = 'Hide Replies';
+            } else {
+                replies.style.display = 'none';
+                button.textContent = 'Show Replies';
+            }
+        }
+        function toggleReportForm(commentId) {
+        var reportForm = document.getElementById('report-form-' + commentId);
+        var button = document.getElementById('report-comment-' + commentId);
+        if (reportForm.style.display === 'none' || reportForm.style.display === '') {
+            reportForm.style.display = 'block';
+            button.textContent = 'Hide Report Form';
+        } else {
+            reportForm.style.display = 'none';
+            button.textContent = 'Report';
+        }
+    }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="post">
+            <h1>{{ post.title|safe }}</h1>
+            <p>{{ post.content|safe }}</p>
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="Post Image">
+            {% endif %}
+            <div class="actions">
+                <form action="{% url 'like_post' post.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="like {% if request.user in post.likes.all %}active{% endif %}">
+                        <span class="like-icon">&#x1F44D;</span> Like ({{ post.likes.count }})
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="comments">
+            <h2>Comments</h2>
+            {% for comment in comments %}
+                <div class="comment">
+                    <p class="author">{{ comment.author.username }}</p>
+                    <p class="content">{{ comment.content|safe }}</p>
+
+                    {% if comment.attachments.all %}
+                        <div class="attachments">
+                            {% for attachment in comment.attachments.all %}
+                                {% if attachment.file.url|slice:":4" == '.jpg' or attachment.file.url|slice:":5" == '.jpeg' or attachment.file.url|slice:":4" == '.png' %}
+                                    <a href="{{ attachment.file.url }}" target="_blank">
+                                        <img src="{{ attachment.file.url }}" alt="Attachment" style="max-width: 100%; height: auto; margin-top: 10px;">
+                                    </a>
+                                {% else %}
+                                    <!-- Do not show the download link for images -->
+                                    <a href="{{ attachment.file.url }}" target="_blank">Download Attachment</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="actions">
+                        <form action="{% url 'like_comment' comment.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="like {% if request.user in comment.likes.all %}active{% endif %}">
+                                <span class="like-icon">&#x1F44D;</span> Like ({{ comment.likes.count }})
+                            </button>
+                        </form>
+                        <button id="toggle-replies-{{ comment.id }}" class="reply-button" onclick="toggleReplies({{ comment.id }})">Show Replies</button>
+                        <a href="{% url 'reply_to_comment' comment.id %}" class="reply">
+                            <span class="reply-icon">&#x1F5E8;</span> Reply
+                        </a>
+                        <button id="report-comment-{{ comment.id }}" class="report-button" onclick="toggleReportForm({{ comment.id }})">
+                            <span class="report-icon">&#x1F6AB;</span> Report
+                        </button>
+                        <div id="report-form-{{ comment.id }}" class="report-form" style="display: none;">
+                            <h3>Report Comment</h3>
+                            <form action="{% url 'report_comment' comment.id %}" method="post">
+                                {% csrf_token %}
+                                <textarea name="reason" rows="4" placeholder="Describe the issue..." required></textarea>
+                                <button type="submit">Submit Report</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div id="replies-{{ comment.id }}" class="replies">
+                        {% for reply in comment.replies.all %}
+                            <div class="comment reply-form">
+                                <p class="author">{{ reply.author.username }}</p>
+                                <p class="content">{{ reply.content|safe }}</p>
+
+                                {% if reply.attachments.all %}
+                                    <div class="attachments">
+                                        {% for attachment in reply.attachments.all %}
+                                            {% if attachment.file.url|slice:":4" == '.jpg' or attachment.file.url|slice:":5" == '.jpeg' or attachment.file.url|slice:":4" == '.png' %}
+                                                <a href="{{ attachment.file.url }}" target="_blank">
+                                                    <img src="{{ attachment.file.url }}" alt="Attachment" style="max-width: 100%; height: auto; margin-top: 10px;">
+                                                </a>
+                                            {% else %}
+                                                <!-- Do not show the download link for images -->
+                                                <a href="{{ attachment.file.url }}" target="_blank">Download Attachment</a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <div class="actions">
+                                    <form action="{% url 'like_comment' reply.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="like {% if request.user in reply.likes.all %}active{% endif %}">
+                                            <span class="like-icon">&#x1F44D;</span> Like ({{ reply.likes.count }})
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="comment-form">
+            <h2>Add a Comment</h2>
+            <form action="{% url 'add_comment' post.id %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <textarea name="content" rows="4" placeholder="Write your comment here..." required></textarea>
+                <input type="file" name="attachments" multiple>
+                <button type="submit">Submit Comment</button>
+            </form>
+        </div>
+
+        <div class="report-form">
+            <h2>Report Post</h2>
+            <form action="{% url 'report_post' post.id %}" method="post">
+                {% csrf_token %}
+                <textarea name="reason" rows="4" placeholder="Reason for reporting..." required></textarea>
+                <button type="submit">Report</button>
+            </form>
+        </div>
+
+        <div class="suggestion-form">
+            <h2>Suggest Improvements</h2>
+            <form action="{% url 'suggest_post' post.id %}" method="post">
+                {% csrf_token %}
+                <input type="text" name="content" value="Test suggestion">
+                <button type="submit">Submit Suggestion</button>
+            </form>
+            
+                        
+        </div>
+    </div>
+</body>
+</html>

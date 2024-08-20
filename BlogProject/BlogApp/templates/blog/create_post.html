@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Post</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #007bff;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .attachment-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .attachment-section label {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .attachment-section input[type="file"] {
+            border: 1px dashed #ccc;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .action-buttons button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .action-buttons .submit-button {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .action-buttons .submit-button:hover {
+            background-color: #0056b3;
+        }
+
+        .action-buttons .cancel-button {
+            background-color: #ccc;
+            color: #333;
+        }
+
+        .action-buttons .cancel-button:hover {
+            background-color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Create New Post</h1>
+        </header>
+
+        <form action="{% url 'create_post' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Render title field -->
+            <div>
+                {{ form.title.label_tag }}
+                {{ form.title }}
+                {{ form.title.errors }}
+            </div>
+            
+            <!-- Render content field -->
+            <div>
+                {{ form.content.label_tag }}
+                <textarea name="content" id="editor" placeholder="Write your post here..." required>{{ form.content.value }}</textarea>
+                {{ form.content.errors }}
+            </div>
+
+            <div class="attachment-section">
+                <label for="attachment">Attach File:</label>
+                <input type="file" name="attachment" id="attachment">
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="submit-button">Create Post</button>
+                <button type="button" class="cancel-button" onclick="window.history.back();">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Include a WYSIWYG editor like CKEditor -->
+    <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('editor', {
+            // Additional configuration options can be added here
+        });
+    </script>
+</body>
+
+</html>

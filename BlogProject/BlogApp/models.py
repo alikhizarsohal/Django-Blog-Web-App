@@ -4,7 +4,7 @@ from django.utils import timezone
 
 # Custom User model
 class User(AbstractUser):
-    email_confirmed = models.BooleanField(default=False)
+    email_confirmed = models.BooleanField(default=True)
     confirmation_sent_at = models.DateTimeField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
     failed_login_attempts = models.IntegerField(default=0)
