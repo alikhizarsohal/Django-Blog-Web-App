@@ -302,11 +302,11 @@
                                 <span class="like-icon">&#x1F44D;</span> Like ({{ comment.likes.count }})
                             </button>
                         </form>
-                        <button id="toggle-replies-{{ comment.id }}" class="reply-button" onclick="toggleReplies({{ comment.id }})">Show Replies</button>
+                        <button id="toggle-replies-{{ comment.id }}" class="reply-button" onclick="toggleReplies('{{ comment.id }}')">Show Replies</button>
                         <a href="{% url 'reply_to_comment' comment.id %}" class="reply">
                             <span class="reply-icon">&#x1F5E8;</span> Reply
                         </a>
-                        <button id="report-comment-{{ comment.id }}" class="report-button" onclick="toggleReportForm({{ comment.id }})">
+                        <button id="report-comment-{{ comment.id }}" class="report-button" onclick="toggleReportForm('{{ comment.id }}')">
                             <span class="report-icon">&#x1F6AB;</span> Report
                         </button>
                         <div id="report-form-{{ comment.id }}" class="report-form" style="display: none;">

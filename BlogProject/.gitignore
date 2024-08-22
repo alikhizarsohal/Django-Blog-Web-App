@@ -1,0 +1,41 @@
+# Python bytecode files
+*.pyc
+__pycache__/
+
+# Virtual environment
+venv/
+.venv/
+
+# Django secret keys and settings
+.env
+*.env
+
+# SQLite database files
+db.sqlite3
+
+# Static and media files
+static/
+media/
+
+staticfiles/
+
+# Node modules
+node_modules/
+
+# Logs and debug files
+*.log
+
+# IDE/editor configurations
+.vscode/
+.idea/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Build and distribution directories
+dist/
+build/
+
+# Pipfile and virtualenv artifacts
+Pipfile.lock

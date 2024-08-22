@@ -146,10 +146,23 @@
             <h2>Your Activities</h2>
             <div class="info-group">
                 <div>
-                    <h3>Comments</h3>
+                    <h3>Recent Comments on Your Posts</h3>
                     <p>Total Comments: {{ user.comments_count }}</p>
-                    <p>Recent Comment: "{{ user.recent_comment }}"</p>
-                </div>
+                    <ul>
+                        {% for comment in recent_comments_on_posts %}
+                            <li>
+                                <p>Comment: "{{ comment.content }}"</p>
+                                <p>
+                                    On Post: 
+                                    <a href="{% url 'post_detail' post_id=comment.post.id %}">{{ comment.post.title }}</a>
+                                </p>
+                                <p>Created At: {{ comment.created_at }}</p>
+                            </li>
+                        {% empty %}
+                            <p>No recent comments.</p>
+                        {% endfor %}
+                    </ul>
+                </div>                
                 <div>
                     <h3>Posts</h3>
                     <p>Total Posts: {{ user.posts_count }}</p>

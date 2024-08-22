@@ -30,6 +30,10 @@ ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = 'BlogApp.User'
 
+
+SESSION_COOKIE_AGE = 3600  # 1 hour
+
+
 # Application definition
 
 INSTALLED_APPS = [

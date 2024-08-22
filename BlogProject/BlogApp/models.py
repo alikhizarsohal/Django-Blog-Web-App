@@ -12,13 +12,20 @@ class User(AbstractUser):
 
     def reset_failed_login_attempts(self):
         self.failed_login_attempts = 0
+        self.lockout_until = None
         self.save()
 
     def increment_failed_login_attempts(self):
+        print('Failed login attempts: ')
+        print(self.failed_login_attempts)
         self.failed_login_attempts += 1
         if self.failed_login_attempts >= 5:
             self.lockout_until = timezone.now() + timezone.timedelta(minutes=5)
         self.save()
+        
+    @property
+    def comments_count(self):
+        return self.comments.count()
 
 # Post model
 class Post(models.Model):

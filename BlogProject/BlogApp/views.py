@@ -1,36 +1,19 @@
 from django.http import HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, authenticate
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 
-from .models import CommentAttachment, User, PostAttachment, Post, Comment, Report, Suggestion
+from .models import CommentAttachment, User, Post, Comment, Report, Suggestion
 from .forms import CommentAttachmentForm, CommentForm, ReportForm, SuggestionForm
-from .forms import PostForm
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from django.contrib import messages
-
-# views.py
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth import login
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.core.mail import EmailMessage
-from django.conf import settings
 from .forms import CustomUserCreationForm
-from .tokens import account_activation_token
+from .forms import PostForm
 
-from django.utils.http import urlsafe_base64_decode
+from django.utils import timezone
 from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model
-from django.contrib import messages
-from django.utils.encoding import force_str
+from django.shortcuts import render, redirect
 
 
 def register(request):
@@ -50,44 +33,75 @@ def register(request):
 
 
 def login(request):
+    print("Entered login view")
+
     if request.method == 'POST':
+        print("Processing POST request")
         form = CustomAuthenticationForm(data=request.POST)
+        print("Form created")
+
         if form.is_valid():
+            print("Form is valid")
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
+
             try:
-                user = authenticate(request, username=username, password=password)
-                if user is not None:
-                    if user.lockout_until and user.lockout_until > timezone.now():
-                        form.add_error(None, 'Account locked. Try again later.')
-                    else:
-                        auth_login(request, user)
-                        user.reset_failed_login_attempts()
-                        return redirect('dashboard')  # Redirect to a home or dashboard page
+                user = User.objects.get(username=username)
+                print(f"User found: {username}")
+
+                if user.lockout_until and user.lockout_until > timezone.now():
+                    print("Account is locked")
+                    form.add_error(None, 'Account locked. Try again later.')
                 else:
-                    user = User.objects.get(username=username)
-                    user.increment_failed_login_attempts()
-                    form.add_error(None, 'Invalid username or password.')
+                    user_auth = authenticate(request, username=username, password=password)
+                    print(f"Authenticate result: {user_auth}")
+
+                    if user_auth is not None:
+                        if user_auth == user:
+                            print("User authenticated successfully")
+                            auth_login(request, user_auth)
+                            user.reset_failed_login_attempts()
+                            return redirect('dashboard')
+                        else:
+                            print("Invalid password")
+                            user.increment_failed_login_attempts()
+                            form.add_error(None, 'Invalid username or password. Please check your credentials.')
+                    else:
+                        print("Authentication failed")
+                        user.increment_failed_login_attempts()
+                        form.add_error(None, 'Invalid username or password. Please check your credentials.')
+
             except User.DoesNotExist:
-                form.add_error(None, 'Invalid username or password.')
+                print("User does not exist")
+                form.add_error(None, 'Invalid username or password. Please check your credentials.')
+
+        else:
+            print("Form errors:", form.errors)
+
     else:
+        print("GET request")
         form = CustomAuthenticationForm()
+
     return render(request, 'login.html', {'form': form})
 
 def logout(request):
     auth_logout(request)
     return redirect('login')  # Redirect to login page after logging out
 
-# @login_required
+@login_required
 def dashboard(request):
     user = request.user  # Get the current logged-in user
+    recent_comments_on_posts = Comment.objects.filter(
+        post__in=user.posts.all()
+    ).order_by('-created_at')[:5]
     context = {
         'user': user,
+        'recent_comments_on_posts': recent_comments_on_posts,
     }
     return render(request, 'blog/dashboard.html', context)
 
 
-#@login_required
+@login_required
 def create_post(request):
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
@@ -106,6 +120,7 @@ def create_post(request):
 
     return render(request, 'blog/create_post.html', {'form': form})
 
+@login_required
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     comments = post.comments.filter(parent_comment__isnull=True)
@@ -283,6 +298,7 @@ def suggest_post(request, post_id):
  
     return redirect('blog/post_detail')  # Fallback redirect if the request method is not POST
 
+@login_required
 def post_list(request):
     posts = Post.objects.all()  # Fetch all posts
     return render(request, 'blog/post_list.html', {'posts': posts})
