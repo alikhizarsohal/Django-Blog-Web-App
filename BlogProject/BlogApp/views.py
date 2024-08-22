@@ -94,9 +94,26 @@ def dashboard(request):
     recent_comments_on_posts = Comment.objects.filter(
         post__in=user.posts.all()
     ).order_by('-created_at')[:5]
+
+
+    # Count the total posts made by the user
+    posts_count = user.posts.count()
+
+    # Get the most recent post made by the user
+    recent_posts = user.posts.order_by('-created_at')[:5]  # Get the 5 most recent posts
+
+    # Get the most recent likes made by the user from the post table as there is no like table
+     # Fetch recent likes for the posts
+
+    posts = Post.objects.prefetch_related('likes').all()
+    # Create a list of posts with their likes
+
     context = {
         'user': user,
         'recent_comments_on_posts': recent_comments_on_posts,
+        'posts_count': posts_count,
+        'recent_posts': recent_posts,
+        'posts': posts
     }
     return render(request, 'blog/dashboard.html', context)
 

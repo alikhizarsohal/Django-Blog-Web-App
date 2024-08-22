@@ -1,0 +1,63 @@
+<div class="info-group">
+    <div>
+        <h3>Recent Comments on Your Posts</h3>
+        <p>Total Comments: {{ user.comments_count }}</p>
+        <ul>
+            {% for comment in recent_comments_on_posts %}
+                <li>
+                    <p>Comment: "{{ comment.content }}"</p>
+                    <p>
+                        On Post: 
+                        <a href="{% url 'post_detail' post_id=comment.post.id %}">{{ comment.post.title }}</a>
+                    </p>
+                    <p>Created At: {{ comment.created_at }}</p>
+                </li>
+            {% empty %}
+                <p>No recent comments.</p>
+            {% endfor %}
+        </ul>
+    </div>                
+    <div>
+        <h3>Recent Posts</h3>
+        <ul>
+            {% if recent_posts %}
+                {% for post in recent_posts %}
+                    <li>
+                        <p>
+                            <a href="{% url 'post_detail' post.id %}">{{ post.title }}</a> 
+                            by {{ post.author }}<br>
+                            Uploaded on {{ post.created_at|date:"F d, Y" }}
+                        </p>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <li>No recent posts available.</li>
+            {% endif %}
+        </ul>
+    </div>       
+</div>
+<div class="info-group">
+    <div>
+        <h2>Posts and Likes</h2>
+        <ul>
+            {% for post in posts %}
+                <li>
+                    <strong>Post:</strong> 
+                    <a href="{% url 'post_detail' post_id=post.id %}">{{ post.title }}</a><br>
+                    <strong>Liked by:</strong> 
+                    <ul>
+                        {% for user in post.likes.all %}
+                            <li>{{ user.username }}</li>
+                        {% empty %}
+                            <li>No likes yet.</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>           
+    <div>
+        <h3>Create Post</h3>
+        <a href="{% url 'create_post' %}">Create a new post now!</a>
+    </div>
+</div>
