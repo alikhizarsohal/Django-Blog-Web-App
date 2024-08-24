@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}User Dashboard{% endblock %}</title>
+    <title>Post List</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -80,44 +79,78 @@
             color: #007bff;
         }
 
-        .additional-info {
-            margin-top: 40px;
+        .post-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        .additional-info h2 {
-            margin-bottom: 20px;
+        .post-card {
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            background-color: #fafafa;
+            cursor: pointer;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .post-card a {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            text-decoration: none;
+            z-index: 1;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        .post-info {
+            padding: 20px;
+            z-index: 2;
+        }
+
+        .post-info h3 {
+            margin: 0;
             font-size: 1.5rem;
             color: #333;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 10px;
         }
 
-        .info-group {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .info-group div {
-            background: #f4f4f4;
-            border-radius: 8px;
-            padding: 15px;
-            width: 48%;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .info-group div h3 {
-            margin-top: 0;
+        .post-info h3 a {
+            text-decoration: none;
             color: #007bff;
+            transition: color 0.3s;
         }
 
-        .info-group div p {
-            margin: 5px 0;
+        .post-info h3 a:hover {
+            color: #0056b3;
+        }
+
+        .post-meta {
+            font-size: 0.9rem;
             color: #555;
+            margin: 10px 0;
+        }
+
+        .post-excerpt {
+            font-size: 1rem;
+            color: #333;
         }
     </style>
 </head>
-
 <body>
     {% load static %}
     <div class="container">
@@ -127,8 +160,8 @@
                 <a href="{% url 'dashboard' %}">Dashboard</a>
                 <a href="#">Comments</a>
                 <a href="#">Reports</a>
-                <a href="suggestions/">Suggestions</a>
-                <a href="posts/">Posts</a>
+                <a href="{% url 'suggestions:user_suggestions' %}">Suggestions</a>
+                <a href="{% url 'posts:post_list' %}">Posts</a>
                 <a href="#">Create Post</a>
                 <a href="#">Likes</a>
             </nav>
@@ -147,15 +180,26 @@
                 <p><strong>Last Login:</strong> {{ user.last_login }}</p>
             </div>
         </section>
-
-        <section class="additional-info">
-            <h2>{% block section_title %}Your Activities{% endblock %}</h2>
-            {% block content %}
-                <!-- Default content for the 'Your Activities' section -->
-                {% include 'blog/info_group.html' with recent_comments_on_posts=recent_comments_on_posts %}
-            {% endblock %}
-        </section>
+        <br>
+        <br>
+        <main>
+            <h2>All Posts</h2>
+            <div class="post-list">
+                {% for post in posts %}
+                    <div class="post-card">
+                        <a href="{% url 'posts:post_detail' post.id %}"></a>
+                        {% if post.attachments.first %}
+                            <img src="{{ post.attachments.first.file.url }}" alt="{{ post.title }}" class="post-image">
+                        {% endif %}
+                        <div class="post-info">
+                            <h3>{{ post.title }}</h3>
+                            <p class="post-meta">By {{ post.author }} | {{ post.published_date|date:"F j, Y" }}</p>
+                            <p class="post-excerpt">{{ post.content|truncatewords:30|safe }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </main>
     </div>
 </body>
-
 </html>

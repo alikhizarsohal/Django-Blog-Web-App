@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}User Dashboard{% endblock %}</title>
+    <title>User Suggestions</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -115,10 +114,73 @@
             margin: 5px 0;
             color: #555;
         }
+
+        strong {
+            color: #333;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        form {
+            display: inline;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button.reject {
+            background-color: #dc3545;
+        }
+
+        button.reject:hover {
+            background-color: #c82333;
+        }
+
+        p {
+            color: #666;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        .accepted {
+            color: #28a745;
+            font-weight: bold;
+        }
     </style>
 </head>
-
 <body>
+
     {% load static %}
     <div class="container">
         <header>
@@ -127,14 +189,15 @@
                 <a href="{% url 'dashboard' %}">Dashboard</a>
                 <a href="#">Comments</a>
                 <a href="#">Reports</a>
-                <a href="suggestions/">Suggestions</a>
-                <a href="posts/">Posts</a>
-                <a href="#">Create Post</a>
+                <a href="{% url 'suggestions:user_suggestions' %}">Suggestions</a>
+                <a href="{% url 'posts:post_list' %}">Posts</a>
+                <a href="{% url 'posts:create_post' %}">Create Post</a>
                 <a href="#">Likes</a>
             </nav>
         </header>
-
+        
         <section class="profile-info">
+            
             {% if user.profile_picture %}
                 <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
             {% else %}
@@ -148,14 +211,37 @@
             </div>
         </section>
 
-        <section class="additional-info">
-            <h2>{% block section_title %}Your Activities{% endblock %}</h2>
-            {% block content %}
-                <!-- Default content for the 'Your Activities' section -->
-                {% include 'blog/info_group.html' with recent_comments_on_posts=recent_comments_on_posts %}
-            {% endblock %}
-        </section>
+        <h2>Suggestions for Your Posts</h2>
+        <br>
+        {% if suggestions %}
+        <ul>
+        {% for suggestion in suggestions %}
+            <li>
+                <div>
+                    <strong>Suggestion:</strong> {{ suggestion.content }}<br>
+                    <strong>Post:</strong> <a href="{% url 'posts:post_detail' suggestion.post.id %}">{{ suggestion.post.title }}</a><br>
+                    <strong>Status:</strong> {{ suggestion.get_status_display }}
+                </div>
+                {% if suggestion.status == 'pending' %}
+                    <form method="post" action="/suggestions/user_suggestions/">
+                        {% csrf_token %}
+                        <input type="hidden" name="suggestion_id" value="{{ suggestion.id }}">
+                        <button type="submit" name="action" value="accept">Accept</button>
+                        <button type="submit" name="action" value="reject" class="reject">Reject</button>
+                    </form>                
+                {% else %}
+
+                    <!-- Status is either 'Accepted' or 'Rejected', hide the buttons -->
+                    <p>Status: {{ suggestion.get_status_display }}</p>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no suggestions on your posts.</p>
+    {% endif %}
+    
+
     </div>
 </body>
-
 </html>

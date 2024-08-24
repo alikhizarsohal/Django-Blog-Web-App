@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'BlogApp',
+    'posts',
+    'suggestions',
+    'comments',
+    'reports',
 ]
 # Media files (uploads)
 MEDIA_URL = '/media/'

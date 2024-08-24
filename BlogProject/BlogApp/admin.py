@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import User, Post, PostAttachment, Comment, CommentAttachment, Suggestion, Report
+from .models import User
+from comments.models import Comment,CommentAttachment
+from reports.models import Report
+from posts.models import Post, PostAttachment
+from suggestions.models import Suggestion, SuggestionReply
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -61,3 +65,11 @@ class ReportAdmin(admin.ModelAdmin):
     search_fields = ('reason',)
     list_filter = ('report_type', 'created_at', 'is_resolved')
     raw_id_fields = ('post', 'comment', 'reported_by')  # To speed up the admin interface for foreign keys
+
+@admin.register(SuggestionReply)
+class SuggestionReplyAdmin(admin.ModelAdmin):
+    list_display = (
+        'suggestion', 'user', 'content', 'created_at'
+    )
+    search_fields = ('content',)
+    list_filter = ('created_at',)

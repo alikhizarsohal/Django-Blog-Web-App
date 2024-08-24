@@ -8,7 +8,7 @@
                     <p>Comment: "{{ comment.content }}"</p>
                     <p>
                         On Post: 
-                        <a href="{% url 'post_detail' post_id=comment.post.id %}">{{ comment.post.title }}</a>
+                        <a href="{% url 'posts:post_detail' post_id=comment.post.id %}">{{ comment.post.title }}</a>
                     </p>
                     <p>Created At: {{ comment.created_at }}</p>
                 </li>
@@ -24,7 +24,7 @@
                 {% for post in recent_posts %}
                     <li>
                         <p>
-                            <a href="{% url 'post_detail' post.id %}">{{ post.title }}</a> 
+                            <a href="{% url 'posts:post_detail' post.id %}">{{ post.title }}</a> 
                             by {{ post.author }}<br>
                             Uploaded on {{ post.created_at|date:"F d, Y" }}
                         </p>
@@ -38,12 +38,12 @@
 </div>
 <div class="info-group">
     <div>
-        <h2>Posts and Likes</h2>
+        <h3>Recent Likes</h3>
         <ul>
             {% for post in posts %}
                 <li>
                     <strong>Post:</strong> 
-                    <a href="{% url 'post_detail' post_id=post.id %}">{{ post.title }}</a><br>
+                    <a href="{% url 'posts:post_detail' post_id=post.id %}">{{ post.title }}</a><br>
                     <strong>Liked by:</strong> 
                     <ul>
                         {% for user in post.likes.all %}
@@ -58,6 +58,6 @@
     </div>           
     <div>
         <h3>Create Post</h3>
-        <a href="{% url 'create_post' %}">Create a new post now!</a>
+        <a href="{% url 'posts:create_post' %}">Create a new post now!</a>
     </div>
 </div>

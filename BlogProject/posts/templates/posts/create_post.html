@@ -115,7 +115,7 @@
             <h1>Create New Post</h1>
         </header>
 
-        <form action="{% url 'create_post' %}" method="POST" enctype="multipart/form-data">
+        <form action="{% url 'posts:create_post' %}" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             
             <!-- Render title field -->

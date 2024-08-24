@@ -23,7 +23,10 @@ from django.urls.conf import include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('BlogApp.urls')),
-    path('account/', include('BlogApp.urls')),  # Adjust the path if necessary
+    path('account/', include('BlogApp.urls')),  # Adjust the path if necessary 
+    path('suggestions/', include(('suggestions.urls', 'suggestions'), namespace='suggestions')),
+    path('posts/', include(('posts.urls', 'posts' ))),
+    path('comments/', include(('comments.urls', 'comments' ))),
 ]
 
 

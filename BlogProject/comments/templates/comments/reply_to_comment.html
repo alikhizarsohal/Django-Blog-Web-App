@@ -38,7 +38,7 @@
     <div class="container">
         <h1>Reply to Comment by {{ parent_comment.author.username }}</h1>
         <p>{{ parent_comment.content }}</p>
-        <form action="{% url 'reply_to_comment' parent_comment.id %}" method="post">
+        <form action="{% url 'comments:reply_to_comment' parent_comment.id %}" method="post">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit">Submit Reply</button>

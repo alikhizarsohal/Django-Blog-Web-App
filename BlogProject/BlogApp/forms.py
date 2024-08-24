@@ -1,7 +1,13 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from .models import CommentAttachment, Post, PostAttachment, User, Comment, Report, Suggestion
+from .models import User
+from comments.models import Comment, CommentAttachment
+from reports.models import Report
+
+from posts.models import Post, PostAttachment
+
+from suggestions.models import Suggestion
 from django.contrib.auth import authenticate
 
 class CustomUserCreationForm(UserCreationForm):
