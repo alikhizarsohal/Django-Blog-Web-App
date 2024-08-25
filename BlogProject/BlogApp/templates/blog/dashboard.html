@@ -115,6 +115,32 @@
             margin: 5px 0;
             color: #555;
         }
+        .create-post-section a {
+            display: block;
+            margin: 10px 0;
+            font-size: 1.2rem;
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .create-post-section a:hover {
+            color: #0056b3;
+        }
+        .edit-profile-link {
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            transition: background-color 0.2s ease-in-out;
+            }
+
+            .edit-profile-link:hover {
+            background-color: #e6e6e6;
+            }
+
     </style>
 </head>
 
@@ -122,18 +148,18 @@
     {% load static %}
     <div class="container">
         <header>
-            <h1>Welcome, {{ user.username }}!</h1>
+            <h1>Welcome, {{ user.username }}!</h1>    
+        <a href="{% url 'edit_profile' %}" class="edit-profile-link">Edit Profile</a>
             <nav>
                 <a href="{% url 'dashboard' %}">Dashboard</a>
                 <a href="#">Comments</a>
-                <a href="#">Reports</a>
                 <a href="suggestions/">Suggestions</a>
                 <a href="posts/">Posts</a>
-                <a href="#">Create Post</a>
+                <a href="{% url 'posts:create_post' %}">Create Post</a>
                 <a href="#">Likes</a>
+                <a href="{% url 'logout' %}">Logout</a>
             </nav>
         </header>
-
         <section class="profile-info">
             {% if user.profile_picture %}
                 <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
@@ -145,9 +171,8 @@
                 <p><strong>Full Name:</strong> {{ user.get_full_name }}</p>
                 <p><strong>Joined:</strong> {{ user.date_joined }}</p>
                 <p><strong>Last Login:</strong> {{ user.last_login }}</p>
-            </div>
+            </div>  
         </section>
-
         <section class="additional-info">
             <h2>{% block section_title %}Your Activities{% endblock %}</h2>
             {% block content %}

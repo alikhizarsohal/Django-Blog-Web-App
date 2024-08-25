@@ -159,11 +159,11 @@
             <nav>
                 <a href="{% url 'dashboard' %}">Dashboard</a>
                 <a href="#">Comments</a>
-                <a href="#">Reports</a>
                 <a href="{% url 'suggestions:user_suggestions' %}">Suggestions</a>
                 <a href="{% url 'posts:post_list' %}">Posts</a>
-                <a href="#">Create Post</a>
+                <a href="{% url 'posts:create_post' %}">Create Post</a>
                 <a href="#">Likes</a>
+                <a href="{% url 'logout' %}">Logout</a>
             </nav>
         </header>
 
@@ -182,8 +182,17 @@
         </section>
         <br>
         <br>
-        <main>
-            <h2>All Posts</h2>
+        <main><h2>All Posts</h2>
+
+            <!-- Search Form -->
+            <form method="get" action="{% url 'posts:post_list' %}">
+                <input type="text" name="author" placeholder="Search by author" value="{{ request.GET.author }}">
+                <input type="text" name="title" placeholder="Search by title" value="{{ request.GET.title }}">
+                <input type="date" name="date_published" value="{{ request.GET.date_published }}">
+                <button type="submit">Search</button>
+            </form>
+            <br>
+            <!-- Post List -->
             <div class="post-list">
                 {% for post in posts %}
                     <div class="post-card">
@@ -193,11 +202,22 @@
                         {% endif %}
                         <div class="post-info">
                             <h3>{{ post.title }}</h3>
-                            <p class="post-meta">By {{ post.author }} | {{ post.published_date|date:"F j, Y" }}</p>
+                            <p class="post-meta">By {{ post.author }} | {{ post.created_at|date:"F j, Y" }}</p>
                             <p class="post-excerpt">{{ post.content|truncatewords:30|safe }}</p>
+                            <!-- Edit Post Link -->
+                            <p>
+                            {% if post.author == request.user %}
+                            <a href="{% url 'posts:edit_post' post.id %}" class="edit-link">Edit Post</a>
+                            {% else %}
+                                <!-- Optionally, you can display a disabled edit link or nothing at all -->
+                                <!-- <span class="edit-link disabled">Edit Post (Disabled)</span> -->
+                            {% endif %}
+                            </p>
                         </div>
                     </div>
                 {% endfor %}
+            </div>
+            
             </div>
         </main>
     </div>

@@ -59,6 +59,7 @@ class CustomAuthenticationForm(AuthenticationForm):
             user = authenticate(username=username, password=password)
             if user is None:
                 # Add custom error message if authentication fails
+                print("-----------------------------------------")
                 self.add_error(None, 'Invalid username or password. Please check your credentials.')
 
         return cleaned_data
@@ -105,3 +106,30 @@ class SuggestionForm(forms.ModelForm):
     class Meta:
         model = Suggestion
         fields = ['content']
+
+
+
+class EditProfileForm(forms.ModelForm):
+    password1 = forms.CharField(widget=forms.PasswordInput(), required=False, label='New Password')
+    password2 = forms.CharField(widget=forms.PasswordInput(), required=False, label='Confirm New Password')
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'profile_picture']
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        user_id = self.instance.id  # Get the ID of the current user instance
+        if User.objects.filter(email=email).exclude(pk=user_id).exists():
+            raise forms.ValidationError('A user with this email already exists.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+
+        if password1 and password1 != password2:
+            self.add_error('password2', 'Passwords do not match.')
+
+        return cleaned_data

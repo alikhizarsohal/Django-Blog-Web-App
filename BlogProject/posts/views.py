@@ -1,4 +1,7 @@
+from django.http import HttpResponseServerError
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template import TemplateDoesNotExist
 
 from BlogApp.forms import CommentAttachmentForm, CommentForm, PostForm, ReportForm, SuggestionForm
 
@@ -6,9 +9,9 @@ from comments.models import Comment, CommentAttachment
 from reports.models import Report
 from suggestions.models import Suggestion
 from .models import Post, PostAttachment
-# Create your views here.
 
-# @login_required
+
+@login_required
 def create_post(request):
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
@@ -27,7 +30,7 @@ def create_post(request):
 
     return render(request, 'posts/create_post.html', {'form': form})
 
-# @login_required
+@login_required
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     comments = post.comments.filter(parent_comment__isnull=True)
@@ -87,7 +90,7 @@ def post_detail(request, post_id):
 
     return render(request, 'posts/post_detail.html', context)
 
-# @login_required
+@login_required
 def like_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user in post.likes.all():
@@ -97,7 +100,7 @@ def like_post(request, post_id):
     return redirect('posts:post_detail', post_id=post.id)
 
 
-# @login_required
+@login_required
 def add_comment(request, post_id):
     if request.method == 'POST':
         form = CommentForm(request.POST, request.FILES)
@@ -118,7 +121,7 @@ def add_comment(request, post_id):
 
     return render(request, 'posts/add_comment.html', {'form': form})
 
-# @login_required
+@login_required
 def report_post(request, post_id):
     if request.method == 'POST':
         post = get_object_or_404(Post, id=post_id)
@@ -133,7 +136,7 @@ def report_post(request, post_id):
         
         return redirect('posts:post_detail', post_id=post_id)
 
-# @login_required
+@login_required
 def suggest_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     
@@ -162,11 +165,45 @@ def suggest_post(request, post_id):
     
     return redirect('posts:post_detail', post_id=post.id)  # Redirect to the post detail view if not POST
 
-
-
-
-
-# @login_required
+@login_required
 def post_list(request):
-    posts = Post.objects.all()  # Fetch all posts  
+    # Get search parameters
+    author_query = request.GET.get('author', '')
+    title_query = request.GET.get('title', '')
+    date_published_query = request.GET.get('date_published', '')
+    posts = Post.objects.filter(is_published=True)  # Fetch only published posts 
+    
+    if author_query:
+        posts = posts.filter(author__username__icontains=author_query)
+    if title_query:
+        posts = posts.filter(title__icontains=title_query)
+    if date_published_query:
+        posts = posts.filter(created_at__date=date_published_query)
+
     return render(request, 'posts/post_list.html', {'posts': posts})
+
+@login_required
+def my_post_list(request):
+    posts = Post.objects.filter(author=request.user)  # Fetch posts authored by the logged-in user
+    return render(request, 'posts/post_list.html', {'posts': posts})
+
+@login_required
+def edit_post(request, post_id):
+    try:
+        post = get_object_or_404(Post, id=post_id, author=request.user)
+        if request.method == 'POST':
+            form = PostForm(request.POST, request.FILES, instance=post)
+            if form.is_valid():
+                form.save()
+                return redirect('posts:post_detail', post_id=post.id)
+        else:
+            form = PostForm(instance=post)
+
+        context = {
+            'form': form,
+            'post': post,
+        }
+
+        return render(request, 'posts/edit_post.html', context)
+    except TemplateDoesNotExist:
+        return HttpResponseServerError("Template not found.")

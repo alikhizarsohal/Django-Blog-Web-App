@@ -1,0 +1,5 @@
+Hi {{ user.username }},
+
+Please click the link below to confirm your email address:
+
+<a href="{{ protocol|escape }}://{{ domain|escape }}/confirm-email/{{ uid|escape }}/{{ token|escape }}">Confirm your email address</a>

@@ -1,18 +1,29 @@
+from pyexpat.errors import messages
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.timezone import now
+
 
 from suggestions.models import Suggestion, SuggestionReply
+
 
 from .models import User
 from reports.models import Report
 from comments.models import Comment,CommentAttachment
 from posts.models import Post
 from suggestions.models import Suggestion, SuggestionReply
-from .forms import CommentAttachmentForm, CommentForm, ReportForm, SuggestionForm
+from .forms import CommentAttachmentForm, CommentForm, EditProfileForm, ReportForm, SuggestionForm
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from .forms import CustomUserCreationForm
 from .forms import PostForm
@@ -29,7 +40,7 @@ def register(request):
             user = form.save()
             user.is_active = True  # Activate account immediately
             user.save()
-            
+            send_confirmation_email(user, request)
             return redirect('login')  # Redirect to login page after registration
     else:
         form = CustomUserCreationForm()
@@ -37,6 +48,37 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 
+def send_confirmation_email(user, request):
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    email_subject = 'Confirm your email address'
+    email_body = render_to_string('email/confirm_email.html', {
+        'user': user,
+        'uid': uid,
+        'token': token,
+        'protocol': 'https' if request.is_secure() else 'http',
+        'domain': request.get_host(),
+    })
+    send_mail(email_subject, email_body, settings.DEFAULT_FROM_EMAIL, [user.email])
+    user.confirmation_sent_at = now()
+    user.save()
+
+def confirm_email(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.email_confirmed = True
+        user.is_active = True
+        user.save()
+        auth_login(request, user)
+        return redirect('dashboard')
+    else:
+        return render(request, 'register/invalid_link.html')
+    
 
 def login(request):
     print("Entered login view")
@@ -95,6 +137,50 @@ def logout(request):
     return redirect('login')  # Redirect to login page after logging out
 
 @login_required
+def edit_profile(request):
+    user = request.user
+
+    if request.method == 'POST':
+        form = EditProfileForm(request.POST, request.FILES, instance=user)
+
+        if form.is_valid():
+            old_email = user.email
+            new_email = form.cleaned_data.get('email')
+
+            # Check if the email was changed
+            if old_email != new_email:
+                # Check if the new email already exists in the database excluding the current user
+                if User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+                    messages.error(request, 'A user with this email already exists.')
+                    return redirect('edit_profile')
+                else:
+                    user.email_confirmed = False
+                    user.confirmation_sent_at = timezone.now()
+                    send_confirmation_email(user, request)  # Assuming this function sends an email confirmation
+            
+            # Save the user's changes
+            user = form.save(commit=False)
+
+            # Check if the user updated their password
+            if form.cleaned_data.get('password1'):
+                user.set_password(form.cleaned_data.get('password1'))
+
+            user.save()
+
+            # Optionally, update the session authentication hash to keep the user logged in after a password change
+            # update_session_auth_hash(request, user)
+
+            return redirect('login')
+        else:
+            print(form.errors)  # This will print out the form errors in the terminal
+
+    else:
+        form = EditProfileForm(instance=user)
+
+    return render(request, 'edit_profile.html', {'form': form})
+
+
+@login_required
 def dashboard(request):
     user = request.user  # Get the current logged-in user
 
@@ -107,7 +193,7 @@ def dashboard(request):
     posts_count = user.posts.count()
 
     # Get the most recent posts made by the user
-    recent_posts = user.posts.order_by('-created_at')[:5]  # Get the 5 most recent posts
+    recent_posts = Post.objects.order_by('-created_at')[:5]  # Get the 5 most recent posts
 
     # Get the most recent likes made by the user from the post table (assuming a 'likes' field exists)
     posts = Post.objects.prefetch_related('likes').all()
@@ -131,156 +217,6 @@ def dashboard(request):
     }
 
     return render(request, 'blog/dashboard.html', context)
-
-# @login_required
-# def create_post(request):
-#     if request.method == 'POST':
-#         form = PostForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             post = form.save(commit=False)
-#             post.author = request.user
-#             post.save()
-
-#             # Handle single file upload
-#             file = request.FILES.get('attachment')
-#             form.save_attachment(post, file)
-
-#             return redirect('dashboard')  # Adjust as needed
-#     else:
-#         form = PostForm()
-
-#     return render(request, 'blog/create_post.html', {'form': form})
-
-# @login_required
-# def post_detail(request, post_id):
-#     post = get_object_or_404(Post, id=post_id)
-#     comments = post.comments.filter(parent_comment__isnull=True)
-
-#     if request.method == 'POST':
-#         # Handle comment submission with attachments
-#         if 'submit_comment' in request.POST:
-#             comment_form = CommentForm(request.POST)
-#             if comment_form.is_valid():
-#                 comment = comment_form.save(commit=False)
-#                 comment.post = post
-#                 comment.author = request.user
-#                 comment.save()
-
-#                 # Handle attachments
-#                 attachment_form = CommentAttachmentForm(request.POST, request.FILES)
-#                 if attachment_form.is_valid():
-#                     for attachment in request.FILES.getlist('file'):
-#                         CommentAttachment.objects.create(comment=comment, file=attachment)
-
-#                 return redirect('post_detail', post_id=post.id)
-
-#         # Handle report submission
-#         if 'submit_report' in request.POST:
-#             report_form = ReportForm(request.POST)
-#             if report_form.is_valid():
-#                 report = report_form.save(commit=False)
-#                 report.post = post
-#                 report.reported_by = request.user
-#                 report.save()
-#                 return redirect('post_detail', post_id=post.id)
-
-#         # Handle suggestion submission
-#         if 'submit_suggestion' in request.POST:
-#             suggestion_form = SuggestionForm(request.POST)
-#             if suggestion_form.is_valid():
-#                 suggestion = suggestion_form.save(commit=False)
-#                 suggestion.post = post
-#                 suggestion.user = request.user
-#                 suggestion.save()
-#                 return redirect('post_detail', post_id=post.id)
-
-#     else:
-#         comment_form = CommentForm()
-#         attachment_form = CommentAttachmentForm()  # Initialize an empty form for attachments
-#         report_form = ReportForm()
-#         suggestion_form = SuggestionForm()
-
-#     context = {
-#         'post': post,
-#         'comments': comments,
-#         'comment_form': comment_form,
-#         'attachment_form': attachment_form,
-#         'report_form': report_form,
-#         'suggestion_form': suggestion_form,
-#     }
-
-#     return render(request, 'blog/post_detail.html', context)
-
-# @login_required
-# def like_post(request, post_id):
-#     post = get_object_or_404(Post, id=post_id)
-#     if request.user in post.likes.all():
-#         post.likes.remove(request.user)
-#     else:
-#         post.likes.add(request.user)
-#     return redirect('post_detail', post_id=post.id)
-
-# @login_required
-# def like_comment(request, comment_id):
-#     comment = get_object_or_404(Comment, id=comment_id)
-#     if request.user in comment.likes.all():
-#         comment.likes.remove(request.user)
-#     else:
-#         comment.likes.add(request.user)
-#     return redirect('posts:post_detail', post_id=comment.post.id)
-
-# @login_required
-# def reply_to_comment(request, comment_id):
-#     parent_comment = get_object_or_404(Comment, id=comment_id)
-#     if request.method == 'POST':
-#         form = CommentForm(request.POST)
-#         if form.is_valid():
-#             reply = form.save(commit=False)
-#             reply.post = parent_comment.post
-#             reply.author = request.user
-#             reply.parent_comment = parent_comment
-#             reply.save()
-#             return redirect('posts:post_detail', post_id=parent_comment.post.id)
-#     else:
-#         form = CommentForm()
-    
-#     return render(request, 'blog/reply_to_comment.html', {'form': form, 'parent_comment': parent_comment})
-
-# @login_required
-# def add_comment(request, post_id):
-#     if request.method == 'POST':
-#         form = CommentForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             comment = form.save(commit=False)
-#             comment.post_id = post_id
-#             comment.author = request.user
-#             comment.save()
-
-#             # Handle attachments
-#             attachments = request.FILES.getlist('attachments')
-#             for attachment in attachments:
-#                 CommentAttachment.objects.create(comment=comment, file=attachment)
-
-#             return redirect('post_detail', post_id=post_id)
-#     else:
-#         form = CommentForm()
-
-#     return render(request, 'add_comment.html', {'form': form})
-
-# @login_required
-# def report_post(request, post_id):
-#     if request.method == 'POST':
-#         post = get_object_or_404(Post, id=post_id)
-#         reason = request.POST.get('reason')
-        
-#         Report.objects.create(
-#             report_type='post',
-#             post=post,
-#             reported_by=request.user,
-#             reason=reason
-#         )
-        
-#         return redirect('post_detail', post_id=post_id)
 
 @login_required
 def report_comment(request, comment_id):
@@ -335,44 +271,6 @@ def reply_to_suggestion(request, suggestion_id):
     
     return redirect('posts:post_detail', post_id=suggestion.post.id)  # Redirect to the post detail view
 
-# @login_required
-# def suggest_post(request, post_id):
-#     post = get_object_or_404(Post, id=post_id)
-    
-#     if request.method == 'POST':
-#         content = request.POST.get('content')
-        
-#         # Debugging output (optional)
-#         print("Request POST data:", request.POST)
-#         print("Content from request.POST:", content)
-
-#         if content:
-#             # Create a new suggestion
-#             suggestion = Suggestion.objects.create(
-#                 post=post,
-#                 user=request.user,
-#                 content=content
-#             )
-#             print("Suggestion created:", suggestion)
-            
-#             return redirect(request.META.get('HTTP_REFERER', 'home'))  # Redirect back to the previous page
-#         else:
-#             # Handle the case where no content was provided
-#             print("No content provided")
-#             # Optionally, add a message to the user indicating that the content is required
-#             # messages.error(request, "Content is required to submit a suggestion.")
-    
-#     return redirect('blog:post_detail', post_id=post.id)  # Redirect to the post detail view if not POST
-
-
-
-
-
-# @login_required
-# def post_list(request):
-#     posts = Post.objects.all()  # Fetch all posts
-#     return render(request, 'blog/post_list.html', {'posts': posts})
-
 @login_required
 def jump_to_suggestions(request):
     print("Jump to suggestions")
@@ -382,3 +280,16 @@ def jump_to_suggestions(request):
 def jump_to_posts(request):
     print("Jump to posts")
     return redirect('posts:post_list')
+
+# Utility function to check if the user is a moderator
+def is_moderator(user):
+    return user.is_authenticated and user.groups.filter(name='Moderators').exists()
+
+# Moderator view to manage posts
+@user_passes_test(is_moderator)
+def moderator(request):
+    # Retrieve all posts (you can filter them if needed)
+    posts = Post.objects.all()
+
+    # Render the template with the posts data
+    return render(request, 'moderator.html', {'posts': posts})

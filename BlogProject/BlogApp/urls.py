@@ -7,7 +7,10 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('register/', views.register, name='register'),
+    path('edit-profile/', views.edit_profile, name='edit_profile'),
+    path('confirm-email/<uidb64>/<token>/', views.confirm_email, name='confirm_email'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('moderator/', views.moderator, name='moderator'),
 
 
     # path('create-post/', views.create_post, name='create_post'),

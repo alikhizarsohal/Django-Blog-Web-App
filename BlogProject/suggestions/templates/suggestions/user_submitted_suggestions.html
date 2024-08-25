@@ -211,44 +211,24 @@
             </div>
         </section>
 
-        <h2>Suggestions for Your Posts</h2>
+        <h2>Your Submitted Suggestions on Other Users' Posts</h2>
         <br>
         {% if suggestions %}
         <ul>
             {% for suggestion in suggestions %}
-            <li>
-                <div>
-                    <strong>Suggestion:</strong> {{ suggestion.content }}<br>
-                    <strong>Post:</strong> <a href="{% url 'posts:post_detail' suggestion.post.id %}">{{ suggestion.post.title }}</a><br>
-                    <strong>Status:</strong> {{ suggestion.get_status_display }}
-                </div>
-        
-                {% if suggestion.status == 'pending' %}
-                    <form method="post" action="/suggestions/user_suggestions/">
-                        {% csrf_token %}
-                        <input type="hidden" name="suggestion_id" value="{{ suggestion.id }}">
-                        <button type="submit" name="action" value="accept">Accept</button>
-                        <button type="submit" name="action" value="reject" class="reject">Reject</button>
-                    </form>
+        <li>
+            <div>
+                <strong>Suggestion:</strong> {{ suggestion.content }}<br>
+                <strong>Post:</strong> <a href="{% url 'posts:post_detail' suggestion.post.id %}">{{ suggestion.post.title }}</a><br>
+                <strong>Status:</strong> {{ suggestion.get_status_display }}
+            </div>
+            {% if suggestion.status == 'accepted' %}
+                {% if suggestion.reply %}
+                    <p><strong>Reply:</strong> {{ suggestion.reply.content }}</p>
                 {% endif %}
-        
-                <!-- Reply Section -->
-                {% if suggestion.status == 'accepted' %}
-                    {% if suggestion.reply %}
-                        <!-- Display the reply if it exists -->
-                        <p><strong>Reply:</strong> {{ suggestion.reply.content }}</p>
-                    {% else %}
-                        <!-- Show the reply input field if no reply has been submitted -->
-                        <form method="post" action="/suggestions/user_suggestions/reply/">
-                            {% csrf_token %}
-                            <input type="hidden" name="suggestion_id" value="{{ suggestion.id }}">
-                            <textarea name="reply_content" placeholder="Enter your reply here"></textarea>
-                            <button type="submit">Submit Reply</button>
-                        </form>
-                    {% endif %}
-                {% endif %}
-            </li>
-        {% endfor %}        
+            {% endif %}
+        </li>
+    {% endfor %}       
         </ul>
     {% else %}
         <p>You have no suggestions on your posts.</p>

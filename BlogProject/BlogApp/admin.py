@@ -19,10 +19,10 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = (
-        'title', 'author', 'created_at', 'updated_at'
+        'title', 'author', 'created_at', 'updated_at', 'is_published'  # Add is_published here
     )
     search_fields = ('title', 'content')
-    list_filter = ('created_at', 'updated_at')
+    list_filter = ('created_at', 'updated_at', 'is_published')  # Add is_published here for filtering
     filter_horizontal = ('likes',)  # For ManyToMany fields
 
 @admin.register(PostAttachment)

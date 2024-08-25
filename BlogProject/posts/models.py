@@ -10,6 +10,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
+    is_published = models.BooleanField(default=False)  # New field for approval status
 
 class PostAttachment(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='attachments')
