@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Suggestions</title>
+    <title>{% block title %}User Dashboard{% endblock %}</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -114,90 +115,51 @@
             margin: 5px 0;
             color: #555;
         }
-
-        strong {
-            color: #333;
-        }
-
-        a {
+        .create-post-section a {
+            display: block;
+            margin: 10px 0;
+            font-size: 1.2rem;
             color: #007bff;
             text-decoration: none;
+            transition: color 0.3s;
         }
 
-        a:hover {
-            text-decoration: underline;
+        .create-post-section a:hover {
+            color: #0056b3;
         }
-
-        form {
-            display: inline;
-        }
-
-        button {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            cursor: pointer;
-            margin-right: 5px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        button.reject {
-            background-color: #dc3545;
-        }
-
-        button.reject:hover {
-            background-color: #c82333;
-        }
-
-        p {
-            color: #666;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        li {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
-        }
-
-        li:last-child {
-            border-bottom: none;
-        }
-
-        .accepted {
-            color: #28a745;
+        .edit-profile-link {
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
             font-weight: bold;
-        }
+            background-color: #fff;
+            border: 1px solid #ddd;
+            transition: background-color 0.2s ease-in-out;
+            }
+
+            .edit-profile-link:hover {
+            background-color: #e6e6e6;
+            }
+
     </style>
 </head>
-<body>
 
+<body>
     {% load static %}
     <div class="container">
         <header>
-            <h1>Welcome, {{ user.username }}!</h1>
+            <h1>Welcome, {{ user.username }}!</h1>    
             <nav>
                 <a href="{% url 'dashboard' %}">Dashboard</a>
                 <a href="{% url 'comments:user_comments' %}">Comments</a>
-                <a href="{% url 'suggestions:user_suggestions' %}">Suggestions</a>
-                <a href="{% url 'posts:post_list' %}">Posts</a>
+                <a href="{% url 'suggestions:user_suggestions'%}">Suggestions</a>
+                <a href="posts/">Posts</a>
                 <a href="{% url 'posts:create_post' %}">Create Post</a>
                 <a href="{% url 'posts:show_likes' %}">Likes</a>
                 <a href="{% url 'logout' %}">Logout</a>
             </nav>
         </header>
-        
         <section class="profile-info">
-            
             {% if user.profile_picture %}
                 <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
             {% else %}
@@ -208,53 +170,40 @@
                 <p><strong>Full Name:</strong> {{ user.get_full_name }}</p>
                 <p><strong>Joined:</strong> {{ user.date_joined }}</p>
                 <p><strong>Last Login:</strong> {{ user.last_login }}</p>
-            </div>
+            </div>  
         </section>
-
-        <h2>Suggestions for Your Posts</h2>
-        <br>
-        {% if suggestions %}
-        <ul>
-            {% for suggestion in suggestions %}
-            <li>
+        <section class="additional-info">
+            <h2>Likes on your posts</h2>
+            <div class="info-group">
                 <div>
-                    <strong>Suggestion:</strong> {{ suggestion.content }}<br>
-                    <strong>Post:</strong> <a href="{% url 'posts:post_detail' suggestion.post.id %}">{{ suggestion.post.title }}</a><br>
-                    <strong>Status:</strong> {{ suggestion.get_status_display }}
-                </div>
-        
-                {% if suggestion.status == 'pending' %}
-                    <form method="post" action="/suggestions/user_suggestions/">
-                        {% csrf_token %}
-                        <input type="hidden" name="suggestion_id" value="{{ suggestion.id }}">
-                        <button type="submit" name="action" value="accept">Accept</button>
-                        <button type="submit" name="action" value="reject" class="reject">Reject</button>
-                    </form>
-                {% endif %}
-        
-                <!-- Reply Section -->
-                {% if suggestion.status == 'accepted' %}
-                    {% if suggestion.reply %}
-                        <!-- Display the reply if it exists -->
-                        <p><strong>Reply:</strong> {{ suggestion.reply.content }}</p>
-                    {% else %}
-                        <!-- Show the reply input field if no reply has been submitted -->
-                        <form method="post" action="/suggestions/user_suggestions/reply/">
-                            {% csrf_token %}
-                            <input type="hidden" name="suggestion_id" value="{{ suggestion.id }}">
-                            <textarea name="reply_content" placeholder="Enter your reply here"></textarea>
-                            <button type="submit">Submit Reply</button>
-                        </form>
-                    {% endif %}
-                {% endif %}
-            </li>
-        {% endfor %}        
-        </ul>
-    {% else %}
-        <p>You have no suggestions on your posts.</p>
-    {% endif %}
-    
-
+                    <h3>Likes</h3>
+                    <ul>
+                        {% for post in posts %}
+                            {% if post.author == request.user %}
+                                <li>
+                                    <strong>Post:</strong> 
+                                    <a href="{% url 'posts:post_detail' post_id=post.id %}">{{ post.title }}</a><br>
+                                    <strong>Liked by:</strong>
+                                    <ul>
+                                        {% if post.likes.all %}
+                                            {% for user in post.likes.all %}
+                                                {% if user != request.user %}
+                                                    <li>{{ user.username }}</li>
+                                                {% endif %}
+                                            {% empty %}
+                                                <li>No likes yet.</li>
+                                            {% endfor %}
+                                        {% else %}
+                                            <li>No likes yet.</li>
+                                        {% endif %}
+                                    </ul>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>            
+                </div> 
+        </section>
     </div>
 </body>
+
 </html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Comments</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'comments/css/user_comments.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Welcome, {{ user.username }}!</h1>
+            <nav>
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'comments:user_comments' %}">Comments</a>
+                <a href="{% url 'suggestions:user_suggestions' %}">Suggestions</a>
+                <a href="{% url 'posts:post_list' %}">Posts</a>
+                <a href="{% url 'posts:create_post' %}">Create Post</a>
+                <a href="{% url 'posts:show_likes' %}">Likes</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </nav>
+        </header>
+        
+        <section class="profile-info">
+            
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+            {% else %}
+                <img src="{% static 'images/default-profile.png' %}" alt="Default Profile Picture">
+            {% endif %}
+            <div class="profile-details">
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Full Name:</strong> {{ user.get_full_name }}</p>
+                <p><strong>Joined:</strong> {{ user.date_joined }}</p>
+                <p><strong>Last Login:</strong> {{ user.last_login }}</p>
+            </div>
+        </section>
+        <hr>
+        <h2>Comments on Your Posts</h2>
+    
+        {% if comments %}
+            <ul class="comment-list">
+                {% for comment in comments %}
+                    <li class="comment-item">
+                        <strong>Post:</strong> <a href="{{ comment.post.get_absolute_url }}">{{ comment.post.title }}</a> <br>
+                        <strong>Comment by:</strong> {{ comment.author.username }} <br>
+                        <strong>Content:</strong> {{ comment.content }} <br>
+                        <strong>Created At:</strong> {{ comment.created_at|date:"F j, Y, g:i a" }} <br>
+                        <strong>Likes:</strong> {{ comment.likes.count }} <br>
+                        {% if comment.attachments.exists %}
+                            <strong>Attachments:</strong>
+                            <ul class="attachment-list">
+                                {% for attachment in comment.attachments.all %}
+                                    <li><a href="{{ attachment.file.url }}" download>Download</a></li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No comments on your posts yet.</p>
+        {% endif %}
+    </div>    
+</body>
+</html>

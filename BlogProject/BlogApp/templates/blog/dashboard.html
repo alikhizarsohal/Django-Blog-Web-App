@@ -152,11 +152,11 @@
         <a href="{% url 'edit_profile' %}" class="edit-profile-link">Edit Profile</a>
             <nav>
                 <a href="{% url 'dashboard' %}">Dashboard</a>
-                <a href="#">Comments</a>
+                <a href="{% url 'comments:user_comments' %}">Comments</a>
                 <a href="suggestions/">Suggestions</a>
                 <a href="posts/">Posts</a>
                 <a href="{% url 'posts:create_post' %}">Create Post</a>
-                <a href="#">Likes</a>
+                <a href="{% url 'posts:show_likes' %}">Likes</a>
                 <a href="{% url 'logout' %}">Logout</a>
             </nav>
         </header>
